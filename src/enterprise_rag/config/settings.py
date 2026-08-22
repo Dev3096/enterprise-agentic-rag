@@ -19,6 +19,16 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    @property
+    def database_url(self) -> str:
+        return (
+            f"postgresql://{self.postgres_user}:"
+            f"{self.postgres_password}@"
+            f"{self.postgres_host}:"
+            f"{self.postgres_port}/"
+            f"{self.postgres_db}"
+        )
+
 
 @lru_cache
 def get_settings() -> Settings:
