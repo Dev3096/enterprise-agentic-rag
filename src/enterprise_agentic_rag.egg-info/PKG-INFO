@@ -8,6 +8,7 @@ Requires-Dist: uvicorn[standard]
 Requires-Dist: pydantic-settings
 Requires-Dist: psycopg[binary]
 Requires-Dist: pgvector
+Requires-Dist: sentence-transformers
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 Requires-Dist: httpx; extra == "dev"
