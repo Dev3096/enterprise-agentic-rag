@@ -1,4 +1,5 @@
 import psycopg
+from pgvector.psycopg import register_vector
 
 from enterprise_rag.config.settings import get_settings
 
@@ -6,4 +7,8 @@ from enterprise_rag.config.settings import get_settings
 def get_connection() -> psycopg.Connection:
     settings = get_settings()
 
-    return psycopg.connect(settings.database_url)
+    connection = psycopg.connect(settings.database_url)
+
+    register_vector(connection)
+
+    return connection
