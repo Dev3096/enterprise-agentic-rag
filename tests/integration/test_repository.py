@@ -1,14 +1,35 @@
 from uuid import uuid4
+import pytest
 
 from enterprise_rag.database.connection import get_connection
 from enterprise_rag.database.repository import DocumentRepository
 from enterprise_rag.models.document import Document, DocumentChunk
 
+@pytest.fixture
+def cleanup_document_ids():
+    document_ids: list[str] = []
 
-def test_save_document():
+    yield document_ids
+
+    if not document_ids:
+        return
+
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                DELETE FROM documents
+                WHERE id = ANY(%s::uuid[])
+                """,
+                (document_ids,),
+            )
+
+
+def test_save_document(cleanup_document_ids):
     repository = DocumentRepository()
 
     document_id = str(uuid4())
+    cleanup_document_ids.append(document_id)
 
     document = Document(
         id=document_id,
@@ -43,10 +64,11 @@ def test_save_document():
     assert result[3] == "product_documentation"
     assert result[4]["product"] == "authentication"
 
-def test_save_chunks():
+def test_save_chunks(cleanup_document_ids):
     repository = DocumentRepository()
 
     document_id = str(uuid4())
+    cleanup_document_ids.append(document_id)
 
     document = Document(
         id=document_id,
