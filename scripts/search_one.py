@@ -1,6 +1,7 @@
 from enterprise_rag.embeddings.sentence_transformer import (
     SentenceTransformerEmbeddingProvider,
 )
+from enterprise_rag.retrieval.service import RetrievalService
 from enterprise_rag.retrieval.vector_search import VectorSearchRepository
 
 
@@ -8,13 +9,24 @@ def main() -> None:
     embedding_provider = SentenceTransformerEmbeddingProvider()
     search_repository = VectorSearchRepository()
 
+    retrieval_service = RetrievalService(
+    embedding_provider=embedding_provider,
+    search_repository=search_repository,
+    )
+
     question = "Why are customers getting token expired errors after v2.18?"
 
-    query_embedding = embedding_provider.embed_text(question)
 
-    results = search_repository.search(
-        query_embedding=query_embedding,
-        limit=3,
+    # results = retrieval_service.retrieve(
+    # question=question,
+    # limit=3,
+    # document_type="incident",
+    # )
+
+    results = retrieval_service.retrieve(
+    question=question,
+    limit=5,
+    similarity_threshold=0.50,
     )
 
     print(f"\nQuestion: {question}\n")

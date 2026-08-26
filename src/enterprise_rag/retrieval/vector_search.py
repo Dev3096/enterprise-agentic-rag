@@ -19,31 +19,59 @@ class VectorSearchRepository:
         self,
         query_embedding: list[float],
         limit: int = 5,
+        document_type: str | None = None,
     ) -> list[SearchResult]:
         with get_connection() as connection:
             with connection.cursor() as cursor:
-                cursor.execute(
-                    """
-                    SELECT
-                    c.id,
-                    c.document_id,
-                    d.title,
-                    d.source,
-                    d.document_type,
-                    c.content,
-                    1 - (c.embedding <=> %s::vector) AS similarity
-                FROM document_chunks c
-                JOIN documents d
-                    ON d.id = c.document_id
-                ORDER BY c.embedding <=> %s::vector
-                LIMIT %s
-                    """,
-                    (
-                        query_embedding,
-                        query_embedding,
-                        limit,
-                    ),
-                )
+                if document_type is None:
+                    cursor.execute(
+                        """
+                        SELECT
+                            c.id,
+                            c.document_id,
+                            d.title,
+                            d.source,
+                            d.document_type,
+                            c.content,
+                            1 - (c.embedding <=> %s::vector) AS similarity
+                        FROM document_chunks c
+                        JOIN documents d
+                            ON d.id = c.document_id
+                        ORDER BY c.embedding <=> %s::vector
+                        LIMIT %s
+                        """,
+                        (
+                            query_embedding,
+                            query_embedding,
+                            limit,
+                        ),
+                    )
+
+                else:
+                    cursor.execute(
+                        """
+                        SELECT
+                            c.id,
+                            c.document_id,
+                            d.title,
+                            d.source,
+                            d.document_type,
+                            c.content,
+                            1 - (c.embedding <=> %s::vector) AS similarity
+                        FROM document_chunks c
+                        JOIN documents d
+                            ON d.id = c.document_id
+                        WHERE d.document_type = %s
+                        ORDER BY c.embedding <=> %s::vector
+                        LIMIT %s
+                        """,
+                        (
+                            query_embedding,
+                            document_type,
+                            query_embedding,
+                            limit,
+                        ),
+                    )
 
                 rows = cursor.fetchall()
 
