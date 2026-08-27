@@ -1,0 +1,20 @@
+[
+  {
+    "id": "token-expired-root-cause",
+    "question": "Why are customers getting token expired errors after v2.18?",
+    "expected_title": "INC-482",
+    "expected_heading": "Root Cause"
+  },
+  {
+    "id": "token-expired-runbook",
+    "question": "What should operators do when TOKEN_EXPIRED errors increase?",
+    "expected_title": "login_failures",
+    "expected_heading": "TOKEN_EXPIRED Errors"
+  },
+  {
+    "id": "v218-authentication-change",
+    "question": "What changed in authentication in version 2.18?",
+    "expected_title": "v2.18",
+    "expected_heading": "Authentication"
+  }
+]
