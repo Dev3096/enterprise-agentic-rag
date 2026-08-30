@@ -10,6 +10,8 @@ class SearchResult:
     title: str
     source: str
     document_type: str
+    heading: str | None
+    heading_path: list[str]
     content: str
     similarity: float
 
@@ -32,6 +34,8 @@ class VectorSearchRepository:
                             d.title,
                             d.source,
                             d.document_type,
+                            c.metadata->>'heading' AS heading,
+                            c.metadata->'heading_path' AS heading_path,
                             c.content,
                             1 - (c.embedding <=> %s::vector) AS similarity
                         FROM document_chunks c
@@ -56,6 +60,8 @@ class VectorSearchRepository:
                             d.title,
                             d.source,
                             d.document_type,
+                            c.metadata->>'heading' AS heading,
+                            c.metadata->'heading_path' AS heading_path,
                             c.content,
                             1 - (c.embedding <=> %s::vector) AS similarity
                         FROM document_chunks c
@@ -82,8 +88,10 @@ class VectorSearchRepository:
                 title=row[2],
                 source=row[3],
                 document_type=row[4],
-                content=row[5],
-                similarity=float(row[6]),
+                heading=row[5],
+                heading_path=row[6] or [],
+                content=row[7],
+                similarity=float(row[8]),
             )
             for row in rows
         ]

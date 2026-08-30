@@ -3,6 +3,7 @@ uvicorn[standard]
 pydantic-settings
 psycopg[binary]
 pgvector
+openai
 sentence-transformers
 
 [dev]

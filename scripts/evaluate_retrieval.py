@@ -30,27 +30,13 @@ def extract_retrieved_evidence(
     retrieved: list[tuple[str, str]] = []
 
     for result in results:
-        # Right now SearchResult does not expose the chunk heading
-        # directly, so we derive it from the first line of chunk content.
-        #
-        # Example:
-        #
-        # Incident INC-482 > Root Cause
-        #
-        # becomes:
-        #
-        # Root Cause
-        first_line = result.content.split("\n", 1)[0]
-
-        if " > " in first_line:
-            section = first_line.split(" > ")[-1]
-        else:
-            section = first_line
+        if result.heading is None:
+            continue
 
         retrieved.append(
             (
                 result.title,
-                section,
+                result.heading,
             )
         )
 

@@ -10,6 +10,7 @@ dependencies = [
     "pydantic-settings",
     "psycopg[binary]",
     "pgvector",
+    "openai",
     "sentence-transformers",
 ]
 
