@@ -18,3 +18,12 @@ def find_invalid_citation_indices(
         for index in citation_indices
         if index not in valid_indices
     ]
+
+def has_no_citations(answer: str) -> bool:
+    """
+    Check if the answer contains no citations.
+
+    Args:
+        answer (str): The answer text to check.
+    """
+    return len(extract_citation_indices(answer)) == 0

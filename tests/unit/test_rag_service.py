@@ -44,7 +44,7 @@ def test_rag_service_retrieves_evidence_and_generates_answer() -> None:
     fake_llm = FakeLLMProvider(
         response=(
             "TOKEN_EXPIRED errors were caused by incorrect "
-            "session-cache invalidation."
+            "session-cache invalidation [1]."
         )
     )
 
@@ -63,7 +63,7 @@ def test_rag_service_retrieves_evidence_and_generates_answer() -> None:
 
     assert response.answer == (
         "TOKEN_EXPIRED errors were caused by incorrect "
-        "session-cache invalidation."
+        "session-cache invalidation [1]."
     )
 
     assert len(response.sources) == 1
@@ -130,6 +130,52 @@ def test_rag_service_rejects_invalid_citations() -> None:
     with pytest.raises(
         ValueError,
         match="Generated answer contains invalid citations",
+    ):
+        rag_service.answer(
+            question="Why are customers getting TOKEN_EXPIRED errors?"
+        )
+
+def test_rag_service_rejects_no_citations() -> None:
+    search_results = [
+        SearchResult(
+            chunk_id="chunk-1",
+            document_id="doc-1",
+            title="INC-482",
+            source="incidents/INC-482.md",
+            document_type="incident",
+            heading="Root Cause",
+            heading_path=["INC-482", "Root Cause"],
+            content=(
+                "The distributed session cache incorrectly invalidated "
+                "some refresh-token sessions."
+            ),
+            similarity=0.91,
+        )
+    ]
+
+    retrieval_service = FakeRetrievalService(
+        results=search_results,
+    )
+
+    fake_llm = FakeLLMProvider(
+        response=(
+            "The issue was caused by incorrect "
+            "session-cache invalidation."
+        )
+    )
+
+    generation_service = GenerationService(
+        llm_provider=fake_llm,
+    )
+
+    rag_service = RAGService(
+        retrieval_service=retrieval_service,
+        generation_service=generation_service,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="No citations were generated. The answer must reference at least one source.",
     ):
         rag_service.answer(
             question="Why are customers getting TOKEN_EXPIRED errors?"

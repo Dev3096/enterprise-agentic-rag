@@ -3,6 +3,7 @@ from enterprise_rag.retrieval.base import RetrievalProvider
 from enterprise_rag.rag.models import Citation, RAGResponse
 from enterprise_rag.generation.citations import (
     find_invalid_citation_indices,
+    has_no_citations,
 )
 
 class RAGService:
@@ -59,6 +60,11 @@ class RAGService:
             raise ValueError(
                 f"Generated answer contains invalid citations: "
                 f"{invalid_citations}"
+            )
+
+        if citations and has_no_citations(answer):
+            raise ValueError(
+                "No citations were generated. The answer must reference at least one source."
             )
 
         return RAGResponse(

@@ -1,6 +1,7 @@
 from enterprise_rag.generation.citations import (
     extract_citation_indices,
     find_invalid_citation_indices,
+    has_no_citations,
 )
 
 
@@ -46,3 +47,25 @@ def test_find_invalid_citation_indices_returns_empty_when_all_valid() -> None:
     )
 
     assert result == []
+
+def test_has_no_citations() -> None:
+    answer = "The session cache caused the issue."
+
+    result = has_no_citations(answer)
+
+    assert result is True
+
+def test_has_no_citations_returns_false_when_present() -> None:
+    answer = "The session cache caused the issue [1]."
+
+    result = has_no_citations(answer)
+
+    assert result is False
+
+def test_has_no_citations_for_empty_string() -> None:
+    answer = ""
+
+    result = has_no_citations(answer)
+
+    assert result is True
+
