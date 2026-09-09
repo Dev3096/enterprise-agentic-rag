@@ -5,6 +5,7 @@ from enterprise_rag.generation.citations import (
 )
 
 
+
 def test_extract_citation_indices() -> None:
     answer = (
         "The session cache caused the issue [1]. "

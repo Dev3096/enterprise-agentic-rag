@@ -3,6 +3,7 @@ from enterprise_rag.rag.service import RAGService
 from enterprise_rag.retrieval.vector_search import SearchResult
 from tests.fake.fake_llm import FakeLLMProvider
 import pytest
+from enterprise_rag.generation.exceptions import CitationValidationError
 
 
 class FakeRetrievalService:
@@ -58,7 +59,7 @@ def test_rag_service_retrieves_evidence_and_generates_answer() -> None:
     )
 
     response = rag_service.answer(
-    question="Why are customers getting TOKEN_EXPIRED errors?"
+        question="Why are customers getting TOKEN_EXPIRED errors?"
     )
 
     assert response.answer == (
@@ -83,10 +84,6 @@ def test_rag_service_retrieves_evidence_and_generates_answer() -> None:
     assert fake_llm.last_user_prompt is not None
     assert "INC-482 > Root Cause" in fake_llm.last_user_prompt
 
-    assert fake_llm.last_user_prompt is not None
-    assert "INC-482 > Root Cause" in fake_llm.last_user_prompt
-
-import pytest
 
 
 def test_rag_service_rejects_invalid_citations() -> None:
@@ -128,7 +125,7 @@ def test_rag_service_rejects_invalid_citations() -> None:
     )
 
     with pytest.raises(
-        ValueError,
+        CitationValidationError,
         match="Generated answer contains invalid citations",
     ):
         rag_service.answer(
@@ -174,9 +171,38 @@ def test_rag_service_rejects_no_citations() -> None:
     )
 
     with pytest.raises(
-        ValueError,
+        CitationValidationError,
         match="No citations were generated. The answer must reference at least one source.",
     ):
         rag_service.answer(
             question="Why are customers getting TOKEN_EXPIRED errors?"
         )
+
+
+def test_rag_service_handles_no_results() -> None:
+    retrieval_service = FakeRetrievalService(
+        results=[],
+    )
+
+    fake_llm = FakeLLMProvider(
+        response="I do not have enough information to answer this question.",
+    )
+
+    generation_service = GenerationService(
+        llm_provider=fake_llm,
+    )
+
+    rag_service = RAGService(
+        retrieval_service=retrieval_service,
+        generation_service=generation_service,
+    )
+
+    response = rag_service.answer(
+        question="Why are customers getting TOKEN_EXPIRED errors?"
+    )
+
+    assert response.answer == "I do not have enough information to answer this question."
+    assert len(response.sources) == 0
+    assert len(response.citations) == 0
+    assert fake_llm.last_system_prompt is None
+    assert fake_llm.last_user_prompt is None
