@@ -1,6 +1,7 @@
 from enterprise_rag.generation.service import GenerationService
 from enterprise_rag.retrieval.base import RetrievalProvider
 from enterprise_rag.rag.models import Citation, RAGResponse
+from enterprise_rag.generation.exceptions import CitationValidationError
 from enterprise_rag.generation.citations import (
     find_invalid_citation_indices,
     has_no_citations,
@@ -57,13 +58,13 @@ class RAGService:
         )
 
         if invalid_citations:
-            raise ValueError(
+            raise CitationValidationError(
                 f"Generated answer contains invalid citations: "
                 f"{invalid_citations}"
             )
 
         if citations and has_no_citations(answer):
-            raise ValueError(
+            raise CitationValidationError(
                 "No citations were generated. The answer must reference at least one source."
             )
 
