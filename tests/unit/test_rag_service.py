@@ -3,7 +3,7 @@ from enterprise_rag.rag.service import RAGService
 from enterprise_rag.retrieval.vector_search import SearchResult
 from tests.fake.fake_llm import FakeLLMProvider
 import pytest
-from enterprise_rag.generation.exceptions import CitationValidationError
+from enterprise_rag.generation.exceptions import CitationValidationError, MISSING_CITATIONS, INVALID_CITATIONS
 
 
 class FakeRetrievalService:
@@ -124,13 +124,12 @@ def test_rag_service_rejects_invalid_citations() -> None:
         generation_service=generation_service,
     )
 
-    with pytest.raises(
-        CitationValidationError,
-        match="Generated answer contains invalid citations",
-    ):
+    
+    with pytest.raises(CitationValidationError) as exc_info:
         rag_service.answer(
             question="Why are customers getting TOKEN_EXPIRED errors?"
         )
+    assert str(exc_info.value.reason) == INVALID_CITATIONS
 
 def test_rag_service_rejects_no_citations() -> None:
     search_results = [
@@ -170,13 +169,11 @@ def test_rag_service_rejects_no_citations() -> None:
         generation_service=generation_service,
     )
 
-    with pytest.raises(
-        CitationValidationError,
-        match="No citations were generated. The answer must reference at least one source.",
-    ):
+    with pytest.raises(CitationValidationError) as exc_info:
         rag_service.answer(
             question="Why are customers getting TOKEN_EXPIRED errors?"
         )
+    assert str(exc_info.value.reason) == MISSING_CITATIONS
 
 
 def test_rag_service_handles_no_results() -> None:
