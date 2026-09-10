@@ -206,3 +206,72 @@ def test_rag_service_handles_no_results() -> None:
     assert len(response.citations) == 0
     assert fake_llm.last_system_prompt is None
     assert fake_llm.last_user_prompt is None
+
+def test_rag_service_handles_multiple_citations() -> None:
+    search_results = [
+        SearchResult(
+            chunk_id="chunk-1",
+            document_id="doc-1",
+            title="INC-482",
+            source="incidents/INC-482.md",
+            document_type="incident",
+            heading="Root Cause",
+            heading_path=["INC-482", "Root Cause"],
+            content=(
+                "The distributed session cache incorrectly invalidated "
+                "some refresh-token sessions."
+            ),
+            similarity=0.91,
+        ), 
+        SearchResult(
+            chunk_id="chunk-2",
+            document_id="doc-2",
+            title="v2.18",
+            source="v2.18 / Known Issues",
+            document_type="release_notes",
+            heading="Known Issues",
+            heading_path=["v2.18", "Known Issues"],
+            content=(
+                "Some customers using long-lived refresh tokens may experience intermittent "
+                "TOKEN_EXPIRED errors after upgrading to version 2.18."
+            ),
+            similarity=0.98,
+        )
+    ]
+
+    retrieval_service = FakeRetrievalService(
+        results = search_results
+    )
+
+    fake_llm = FakeLLMProvider(
+        response=(
+            "The issue was caused by incorrect "
+            "session-cache invalidation [1]."
+            "Version 2.18 also had a known issue causing intermittent TOKEN_EXPIRED errors [2]."
+        )
+    )
+
+    generation_service = GenerationService(
+        llm_provider=fake_llm,
+    )
+
+    rag_service = RAGService(
+        retrieval_service=retrieval_service,
+        generation_service=generation_service,
+    )
+
+    response = rag_service.answer(
+        question="Why are customers getting TOKEN_EXPIRED errors?"
+    )
+    
+    assert len(response.citations) == 2
+    assert response.citations[0].index == 1
+    assert response.citations[0].title == "INC-482"
+
+    assert response.citations[1].index == 2
+    assert response.citations[1].title == "v2.18"
+
+
+
+
+
