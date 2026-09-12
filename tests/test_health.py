@@ -10,8 +10,15 @@ def test_health_endpoint():
     response = client.get("/health")
 
     assert response.status_code == 200
-
+    
     body = response.json()
 
     assert body["status"] == "healthy"
     assert body["service"] == "enterprise-agentic-rag"
+
+def test_ask_endpoint() -> None:
+    response = client.post("/ask", json= {"question": "Why are TOKEN_EXPIRED errors increasing?"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["answer"] == "This is the response"
+    assert body["citations"] == []
