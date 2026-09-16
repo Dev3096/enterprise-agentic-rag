@@ -5,6 +5,8 @@ from enterprise_rag.rag.models import Citation
 from pprint import pprint
 from enterprise_rag.generation.exceptions import CitationValidationError, MISSING_CITATIONS, INVALID_CITATIONS
 from typing import Never
+import pytest
+from collections.abc import Generator
 
 from apps.api.main import app
 
@@ -61,10 +63,19 @@ def test_ask_endpoint() -> None:
     assert body["answer"] == "This is the response"
     assert body["citations"][0]["heading"] == "Root Cause" 
 
-def test_ask_endpoint_invalid_citation() -> None:
-    app.dependency_overrides[get_rag_service] = fake_exception_rag_service
+def test_ask_endpoint_invalid_citation(override_with_invalid_citation_service) -> None:
     response = client.post("/ask", json= {"question": "Why are TOKEN_EXPIRED errors increasing?"})
     assert response.status_code == 500
     body = response.json()
     assert body["error"] == INVALID_CITATIONS
     assert body["message"] == "Generated answer contains invalid citations: [7]"
+
+@pytest.fixture
+def override_with_invalid_citation_service() -> Generator[None, None, None]:
+    current_value = app.dependency_overrides.get(get_rag_service)
+    app.dependency_overrides[get_rag_service] = fake_exception_rag_service
+    yield
+    if current_value is None:
+        app.dependency_overrides.pop(get_rag_service, None)
+    else:
+        app.dependency_overrides[get_rag_service] = current_value
