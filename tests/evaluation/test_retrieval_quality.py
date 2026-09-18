@@ -9,6 +9,8 @@ from enterprise_rag.embeddings.sentence_transformer import (
 from enterprise_rag.retrieval.service import RetrievalService
 from enterprise_rag.retrieval.vector_search import VectorSearchRepository
 
+pytestmark = pytest.mark.evaluation
+
 
 EVALUATION_FILE = Path(
     "data/evaluation/retrieval_cases.json"
