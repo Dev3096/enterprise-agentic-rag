@@ -79,3 +79,12 @@ def override_with_invalid_citation_service() -> Generator[None, None, None]:
         app.dependency_overrides.pop(get_rag_service, None)
     else:
         app.dependency_overrides[get_rag_service] = current_value
+
+@pytest.fixture(autouse=True)
+def reset_fake_rag_service() -> None:
+    fake_rag_service.last_question = None
+    
+def test_white_space_only_question() -> None:
+    response = client.post("/ask", json= {"question": " "})
+    assert response.status_code == 422
+    assert fake_rag_service.last_question is None
