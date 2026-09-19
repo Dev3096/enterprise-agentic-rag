@@ -7,6 +7,10 @@ from enterprise_rag.generation.citations import (
     find_invalid_citation_indices,
     has_no_citations,
 )
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class RAGService:
     def __init__(
@@ -25,7 +29,7 @@ class RAGService:
         similarity_threshold: float = 0.50,
     ) -> RAGResponse:
         
-
+        logger.info("RAG request has started")
         results = self.retrieval_service.retrieve(
             question=question,
             limit=limit,
